@@ -118,7 +118,7 @@ jobs:
         if: runner.os == 'Linux'
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
-          LINUXDEPLOYQT_EXTRA_ARGS: -unsupported-allow-new-glibc-versions
+          LINUXDEPLOYQT_EXTRA_ARGS: -unsupported-allow-new-glibc
         run: |
           curl -fsSL -o /usr/local/bin/linuxdeployqt \
             https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage

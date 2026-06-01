@@ -63,7 +63,7 @@ fi
 cd "$REPO_ROOT/build"
 echo "Building AppImage with $LINUXDEPLOYQT"
 # LINUXDEPLOYQT_EXTRA_ARGS lets CI add robustness flags without changing the
-# default local behaviour. In CI we pass -unsupported-allow-new-glibc-versions
+# default local behaviour. In CI we pass -unsupported-allow-new-glibc
 # because linuxdeployqt otherwise refuses to run on anything newer than the
 # oldest-supported Ubuntu. (The resulting AppImage then needs a glibc at least
 # as new as the build host's.)
