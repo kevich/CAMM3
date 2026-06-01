@@ -1,0 +1,105 @@
+name: build
+
+on: [push, pull_request]
+
+# Qt version is centralized here so it is trivial to bump. Any 6.5+ release works
+# (the project requires Qt 6.5). 6.8.x is the current LTS-ish line at time of writing.
+env:
+  QT_VERSION: 6.8.2
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            name: macOS
+          - os: ubuntu-latest
+            name: Linux
+          - os: windows-latest
+            name: Windows
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Ubuntu needs the X11/xcb/GL system libraries that Qt Widgets links against
+      # at runtime (and that the headless test runner loads via the offscreen
+      # platform plugin), plus a compiler toolchain. macOS/Windows runners ship a
+      # working toolchain already.
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-0 \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-randr0 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxcb-util1 \
+            libxcb-xinerama0 \
+            libxcb-xkb1
+
+      # install-qt-action exports Qt6_DIR / CMAKE_PREFIX_PATH / QT_ROOT_DIR into the
+      # job environment and puts the Qt bin dir on PATH. We request a full desktop
+      # Qt plus the qtserialport module so SerialTransport is actually compiled.
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          modules: qtserialport
+          cache: true
+
+      # Reliable cross-platform Ninja install (no manual brew/choco/apt branching).
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@v6
+
+      # A FRESH build dir is mandatory: core/ and tests/ glob sources with
+      # CONFIGURE_DEPENDS and rely on AUTOMOC, so a clean checkout -> clean configure
+      # is the only way to guarantee everything is (re)generated. CI starts clean,
+      # so this is satisfied naturally. CMAKE_PREFIX_PATH comes from install-qt-action.
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure -C Release
+
+      # --- Artifacts: the built application, per OS ---
+
+      - name: Upload macOS app
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CAMM3-macos
+          path: build/app/CAMM3.app
+          if-no-files-found: error
+
+      - name: Upload Windows app
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CAMM3-windows
+          path: build/app/CAMM3.exe
+          if-no-files-found: error
+
+      - name: Upload Linux app
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CAMM3-linux
+          path: build/app/CAMM3
+          if-no-files-found: error

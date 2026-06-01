@@ -1,0 +1,17 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+ <qresource prefix="/">
+  <file>icons/disk.png</file>
+  <file>icons/folder_image.png</file>
+  <file>icons/lock.png</file>
+  <file>icons/unlocked.png</file>
+  <file>icons/printer.png</file>
+  <file>icons/page_refresh.png</file>
+  <file>icons/shape_rotate_clockwise.png</file>
+  <file>icons/shape_rotate_anticlockwise.png</file>
+  <file>icons/shape_handles.png</file>
+  <file>icons/zoom.png</file>
+  <file>icons/zoomin.png</file>
+  <file>icons/zoomout.png</file>
+ </qresource>
+</RCC>
