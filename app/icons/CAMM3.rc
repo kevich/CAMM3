@@ -1,0 +1,4 @@
+// Windows resource script: embeds the application icon into CAMM3.exe so it
+// shows in Explorer, the taskbar, and the title bar. The first icon in a .rc
+// (lowest ID) is the one Explorer uses for the executable.
+IDI_ICON1 ICON "CAMM3.ico"

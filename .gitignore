@@ -32,6 +32,8 @@ qrc_*.cpp
 Thumbs.db
 *.res
 *.rc
+# ...but the Windows app-icon resource script is a tracked source file.
+!app/icons/CAMM3.rc
 /.qmake.cache
 /.qmake.stash
 **/.qmlls.ini
