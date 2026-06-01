@@ -96,22 +96,30 @@ Compress-Archive -Path build\app\* -DestinationPath build\CAMM3-windows.zip
 packaging/linux.sh [QT_BIN_DIR]
 ```
 
-Uses [`linuxdeployqt`](https://github.com/probonopd/linuxdeployqt) to bundle Qt and
-produce a portable `CAMM3-x86_64.AppImage`. `linuxdeployqt` is not shipped with Qt;
-download the AppImage release and either put it on your `PATH` or set
-`LINUXDEPLOYQT` to its path before running the script.
+Uses [`linuxdeploy`](https://github.com/linuxdeploy/linuxdeploy) plus its
+[`qt` plugin](https://github.com/linuxdeploy/linuxdeploy-plugin-qt) to bundle Qt
+and produce a portable `CAMM3-x86_64.AppImage`. (This is the actively-maintained
+toolchain; `probonopd/linuxdeployqt` is fragile on modern distros and aborts
+silently.) Neither tool ships with Qt — download both release AppImages and put
+them on your `PATH` (`linuxdeploy` auto-discovers a plugin named
+`linuxdeploy-plugin-qt` on `PATH`), or set `LINUXDEPLOY` to linuxdeploy's path.
 
-`linuxdeployqt` needs `qmake` discoverable so it can locate the matching Qt — this
-is why the Qt bin dir must be on `PATH` (the script prepends `QT_BIN_DIR` for you).
+The Qt plugin needs `qmake` discoverable so it can locate the matching Qt — this
+is why the Qt bin dir must be on `PATH` (the script prepends `QT_BIN_DIR` and
+exports `QMAKE` for you).
 
 Manual equivalent:
 
 ```sh
-export PATH="$HOME/Qt/6.8.2/gcc_64/bin:$PATH"   # so linuxdeployqt finds qmake
-cmake --install build --prefix AppDir/usr        # or copy build/app/CAMM3 manually
-linuxdeployqt AppDir/usr/share/applications/CAMM3.desktop -appimage
+export PATH="$HOME/Qt/6.8.2/gcc_64/bin:$PATH"   # so the qt plugin finds qmake
+linuxdeploy --appdir AppDir \
+    --executable build/app/CAMM3 \
+    --desktop-file CAMM3.desktop \
+    --icon-file CAMM3.png \
+    --plugin qt --output appimage
 ```
 
-> A `.desktop` file and icon are required by `linuxdeployqt` to build the AppImage.
-> The script generates a minimal one if none exists. AppImages built this way are
-> portable across most modern x86_64 Linux distributions.
+> A `.desktop` file and icon are required to build the AppImage. The script
+> generates minimal ones if none exist. AppImages built this way are portable
+> across most modern x86_64 Linux distributions (glibc at least as new as the
+> build host's).

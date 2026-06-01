@@ -68,7 +68,8 @@ jobs:
             libxcb-util1 \
             libxcb-xinerama0 \
             libxcb-xkb1 \
-            libfuse2
+            libfuse2 \
+            patchelf
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
@@ -110,20 +111,21 @@ jobs:
         if: runner.os == 'Windows'
         run: pwsh packaging/windows.ps1
 
-      # linuxdeployqt bundles Qt into a portable AppImage. It is not shipped with
-      # Qt, so fetch the release binary first. APPIMAGE_EXTRACT_AND_RUN avoids
-      # relying on FUSE at runtime; the -unsupported flag lets it run on a modern
-      # Ubuntu runner.
+      # linuxdeploy + its Qt plugin bundle Qt into a portable AppImage. Neither
+      # ships with Qt, so fetch both release AppImages first. linuxdeploy
+      # auto-discovers the qt plugin by name on PATH. APPIMAGE_EXTRACT_AND_RUN
+      # lets these AppImage tools run without FUSE on the runner.
       - name: Package Linux (AppImage)
         if: runner.os == 'Linux'
         env:
           APPIMAGE_EXTRACT_AND_RUN: 1
-          LINUXDEPLOYQT_EXTRA_ARGS: -unsupported-allow-new-glibc
         run: |
-          curl -fsSL -o /usr/local/bin/linuxdeployqt \
-            https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-          sudo chmod +x /usr/local/bin/linuxdeployqt
-          LINUXDEPLOYQT=/usr/local/bin/linuxdeployqt packaging/linux.sh "$QT_ROOT_DIR/bin"
+          curl -fsSL -o /usr/local/bin/linuxdeploy \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          curl -fsSL -o /usr/local/bin/linuxdeploy-plugin-qt \
+            https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+          sudo chmod +x /usr/local/bin/linuxdeploy /usr/local/bin/linuxdeploy-plugin-qt
+          LINUXDEPLOY=/usr/local/bin/linuxdeploy packaging/linux.sh "$QT_ROOT_DIR/bin"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
