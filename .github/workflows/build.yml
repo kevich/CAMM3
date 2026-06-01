@@ -65,6 +65,15 @@ jobs:
       - name: Install Ninja
         uses: seanmiddleditch/gha-setup-ninja@v6
 
+      # install-qt-action installs the MSVC build of Qt on Windows
+      # (win64_msvc2022_64). Activate the MSVC developer environment so CMake +
+      # Ninja pick cl.exe instead of the runner's MinGW gcc — MinGW's ld cannot
+      # consume MSVC import libraries (it fails with undefined __imp_ symbols
+      # when linking against Qt6Core/Qt6Test).
+      - name: Set up MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
       # A FRESH build dir is mandatory: core/ and tests/ glob sources with
       # CONFIGURE_DEPENDS and rely on AUTOMOC, so a clean checkout -> clean configure
       # is the only way to guarantee everything is (re)generated. CI starts clean,
