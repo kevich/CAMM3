@@ -2,8 +2,27 @@
 
 These helpers turn a built tree into a distributable artifact per OS using the Qt
 deploy tools (`macdeployqt`, `windeployqt`, `linuxdeployqt`). They run **locally**
-or in an optional CI release job — they are not part of the normal `build`
-workflow, which only builds, tests, and uploads the raw binary.
+or in the CI release job — they are not part of the normal `build` workflow,
+which only builds, tests, and uploads the raw binary (that raw binary does **not**
+run on a machine without Qt installed — Windows reports a missing `Qt6Gui.dll`,
+macOS is missing its frameworks).
+
+## CI: the `release` workflow
+
+[`.github/workflows/release.yml`](../.github/workflows/release.yml) runs these
+scripts on every platform and uploads the self-contained artifacts (`.dmg`,
+`.zip`, `.AppImage`). It triggers on:
+
+- **a tag push** matching `v*` — it also creates a GitHub Release and attaches
+  the three artifacts. Cut a release with:
+
+  ```sh
+  git tag v0.1.0
+  git push origin v0.1.0
+  ```
+
+- **a manual run** (Actions → release → "Run workflow") — builds and packages;
+  the artifacts are downloadable from the run summary, no Release is created.
 
 ## Prerequisites
 
@@ -34,13 +53,21 @@ otherwise they fall back to whatever is on `PATH`.
 packaging/macos.sh [QT_BIN_DIR]
 ```
 
-Runs `macdeployqt build/app/CAMM3.app -dmg`, producing `build/app/CAMM3.dmg`
-(a self-contained, code-signable disk image with the Qt frameworks bundled in).
+Runs `macdeployqt` to bundle the Qt frameworks, **ad-hoc code-signs** the bundle
+(mandatory on Apple Silicon — an unsigned binary is killed on launch), then wraps
+it in `build/app/CAMM3.dmg`.
+
+> **Gatekeeper:** the ad-hoc signature is not a Developer-ID + notarized one, so a
+> `.dmg` downloaded from the internet is quarantined. The user must right-click →
+> Open once, or run `xattr -dr com.apple.quarantine /Applications/CAMM3.app`.
+> Proper distribution needs an Apple Developer ID and notarization.
 
 Manual equivalent:
 
 ```sh
-~/Qt/6.8.2/macos/bin/macdeployqt build/app/CAMM3.app -dmg
+~/Qt/6.8.2/macos/bin/macdeployqt build/app/CAMM3.app
+codesign --force --deep --sign - build/app/CAMM3.app
+hdiutil create -volname CAMM3 -srcfolder build/app/CAMM3.app -ov -format UDZO build/app/CAMM3.dmg
 ```
 
 ## Windows
@@ -55,7 +82,7 @@ plugins next to the .exe, then zips `build\app` into `build\CAMM3-windows.zip`.
 Manual equivalent:
 
 ```powershell
-C:\Qt\6.8.2\msvc2022_64\bin\windeployqt.exe --release build\app\CAMM3.exe
+C:\Qt\6.8.2\msvc2022_64\bin\windeployqt.exe --release --compiler-runtime build\app\CAMM3.exe
 Compress-Archive -Path build\app\* -DestinationPath build\CAMM3-windows.zip
 ```
 

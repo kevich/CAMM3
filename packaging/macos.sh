@@ -26,7 +26,36 @@ if [ ! -d "$APP" ]; then
     exit 1
 fi
 
-echo "Deploying $APP -> .dmg with $MACDEPLOYQT"
-"$MACDEPLOYQT" "$APP" -dmg
+DMG="$REPO_ROOT/build/app/CAMM3.dmg"
 
-echo "Done: $REPO_ROOT/build/app/CAMM3.dmg"
+# 1) Bundle the Qt frameworks/plugins into the .app and rewrite its rpaths.
+#    Done WITHOUT -dmg so we can (ad-hoc) sign the finished bundle before
+#    packaging it — see step 2.
+echo "Deploying $APP with $MACDEPLOYQT"
+"$MACDEPLOYQT" "$APP"
+
+# 2) Ad-hoc code-sign the whole bundle. On Apple Silicon an unsigned binary is
+#    killed by the kernel on launch ("code signature invalid"), so this is
+#    mandatory — not cosmetic — even without a Developer ID. --deep signs the
+#    bundled Qt frameworks too; --force replaces macdeployqt's partial signing.
+echo "Ad-hoc code-signing $APP"
+codesign --force --deep --sign - "$APP"
+codesign --verify --deep --strict "$APP" || {
+    echo "error: code-signing verification failed." >&2
+    exit 1
+}
+
+# 3) Pack the signed bundle into a compressed disk image. A .dmg is a single
+#    file, so it survives upload/download without the framework symlink
+#    corruption that zipping a raw .app causes.
+echo "Building disk image $DMG"
+rm -f "$DMG"
+hdiutil create -volname CAMM3 -srcfolder "$APP" -ov -format UDZO "$DMG"
+
+echo "Done: $DMG"
+
+# NOTE: this is an ad-hoc signature, not a Developer-ID + notarized one. On a
+# machine that downloaded the .dmg from the internet, Gatekeeper quarantines it;
+# the user must either right-click -> Open once, or run:
+#     xattr -dr com.apple.quarantine /Applications/CAMM3.app
+# Proper distribution requires signing with a Developer ID and notarization.

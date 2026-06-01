@@ -37,7 +37,11 @@ if (-not (Test-Path $Exe)) {
 }
 
 Write-Host "Deploying $Exe with $WinDeployQt"
-& $WinDeployQt --release $Exe
+# --compiler-runtime copies the MSVC C++ runtime DLLs (vcruntime140.dll,
+# msvcp140.dll, ...) next to the .exe so the app launches on machines without
+# the Visual C++ Redistributable installed. windeployqt locates them via the VS
+# environment, so this must run from an MSVC developer prompt.
+& $WinDeployQt --release --compiler-runtime $Exe
 
 if (Test-Path $Zip) { Remove-Item $Zip }
 Write-Host "Zipping $AppDir -> $Zip"
