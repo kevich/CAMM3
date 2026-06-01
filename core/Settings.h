@@ -3,6 +3,8 @@
 #include <QSettings>
 #include <QString>
 
+#include <memory>
+
 namespace camm3
 {
 
@@ -72,7 +74,11 @@ public:
     void setLanguage(const QString& value);
 
 private:
-    mutable QSettings m_settings;
+    // Held by pointer (not by value) so the org/app vs ini-file choice can be
+    // made in the initializer list without copying/moving QSettings, which is
+    // non-copyable and non-movable (a QObject). operator-> on a const unique_ptr
+    // yields a non-const QSettings*, so the const getters work without `mutable`.
+    std::unique_ptr<QSettings> m_settings;
 };
 
 } // namespace camm3
