@@ -2,6 +2,7 @@
 #include "core/Settings.h"
 
 #include <QApplication>
+#include <QIcon>
 #include <QLocale>
 #include <QStringList>
 #include <QTranslator>
@@ -9,6 +10,10 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    // Runtime window/taskbar icon (embedded via resources.qrc). On macOS the Dock
+    // uses the bundle's .icns instead, but this is harmless there.
+    QApplication::setWindowIcon(QIcon(QStringLiteral(":/icons/CAMM3.png")));
 
     // Language: an explicit choice in Settings wins; otherwise follow the system
     // locale. The .qm files are embedded by qt_add_translations under :/i18n/.
