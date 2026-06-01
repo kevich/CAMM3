@@ -12,6 +12,10 @@
 // translated to QSerialPort::* values inside the .cpp under the
 // CAMM3_HAVE_SERIALPORT guard.
 
+QT_BEGIN_NAMESPACE
+class QSerialPort;
+QT_END_NAMESPACE
+
 namespace camm3 {
 
 // IPlotterTransport implementation that drives a physical RS-232 serial link.
@@ -99,9 +103,9 @@ private:
 
 #if CAMM3_HAVE_SERIALPORT
     // The concrete QSerialPort lives only in the .cpp to keep this header free
-    // of the SerialPort module. A forward declaration would still require the
-    // type at destruction, so we use an opaque pointer managed in the .cpp.
-    class QSerialPort* m_port = nullptr;
+    // of the SerialPort module; it is forward-declared at global scope above so
+    // this resolves to ::QSerialPort, not camm3::QSerialPort.
+    QSerialPort* m_port = nullptr;
 #endif
 };
 
