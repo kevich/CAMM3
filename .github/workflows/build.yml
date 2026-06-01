@@ -6,6 +6,10 @@ on: [push, pull_request]
 # (the project requires Qt 6.5). 6.8.x is the current LTS-ish line at time of writing.
 env:
   QT_VERSION: 6.8.2
+  # gha-setup-ninja and msvc-dev-cmd have no Node 24 release yet; force their
+  # (and any other) JS actions onto Node 24 so nothing runs on the deprecated
+  # Node 20 runtime. checkout/upload-artifact below are already Node 24 natively.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -24,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Ubuntu needs the X11/xcb/GL system libraries that Qt Widgets links against
       # at runtime (and that the headless test runner loads via the offscreen
@@ -91,7 +95,7 @@ jobs:
 
       - name: Upload macOS app
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CAMM3-macos
           path: build/app/CAMM3.app
@@ -99,7 +103,7 @@ jobs:
 
       - name: Upload Windows app
         if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CAMM3-windows
           path: build/app/CAMM3.exe
@@ -107,7 +111,7 @@ jobs:
 
       - name: Upload Linux app
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CAMM3-linux
           path: build/app/CAMM3

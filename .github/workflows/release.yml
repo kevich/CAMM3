@@ -18,6 +18,10 @@ on:
 
 env:
   QT_VERSION: 6.8.2
+  # gha-setup-ninja and msvc-dev-cmd have no Node 24 release yet; force their
+  # (and any other) JS actions onto Node 24 so nothing runs on the deprecated
+  # Node 20 runtime. The pinned actions below are already Node 24 natively.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 # Needed for softprops/action-gh-release to create the Release on tag pushes.
 permissions:
@@ -43,10 +47,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Same X11/xcb/GL stack the app links against at runtime; plus FUSE, which
-      # linuxdeployqt (itself an AppImage) needs to run and to build the output
+      # the linuxdeploy AppImage tools need to run and to build the output
       # AppImage.
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
@@ -128,7 +132,7 @@ jobs:
           LINUXDEPLOY=/usr/local/bin/linuxdeploy packaging/linux.sh "$QT_ROOT_DIR/bin"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CAMM3-${{ matrix.name }}
           path: ${{ matrix.artifact }}
@@ -138,7 +142,7 @@ jobs:
       # matrix job appends its own file to the same Release for the tag.
       - name: Publish to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: ${{ matrix.artifact }}
           fail_on_unmatched_files: true
