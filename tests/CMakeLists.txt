@@ -12,7 +12,7 @@ file(GLOB TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*Test.cpp"
 foreach(test_src ${TEST_SOURCES})
     get_filename_component(test_name ${test_src} NAME_WE)
     qt_add_executable(${test_name} ${test_src})
-    target_link_libraries(${test_name} PRIVATE camm3_core Qt6::Test)
+    target_link_libraries(${test_name} PRIVATE camm3_core Qt${QT_VERSION_MAJOR}::Test)
     target_compile_definitions(${test_name} PRIVATE
         CAMM3_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
     )

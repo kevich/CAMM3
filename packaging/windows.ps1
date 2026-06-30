@@ -7,11 +7,18 @@
 .PARAMETER QtBinDir
     Optional path to the Qt bin dir (containing windeployqt.exe). If omitted,
     windeployqt is taken from PATH.
+.PARAMETER OutputName
+    Optional name of the output zip placed in build\. Defaults to
+    CAMM3-windows.zip. The Win7 (Qt5) build passes CAMM3-windows7.zip so the two
+    Windows artifacts do not collide.
 .EXAMPLE
     packaging\windows.ps1 -QtBinDir C:\Qt\6.8.2\msvc2022_64\bin
+.EXAMPLE
+    packaging\windows.ps1 -OutputName CAMM3-windows7.zip
 #>
 param(
-    [string]$QtBinDir = ""
+    [string]$QtBinDir = "",
+    [string]$OutputName = "CAMM3-windows.zip"
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,7 +26,7 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $Exe      = Join-Path $RepoRoot "build\app\CAMM3.exe"
 $AppDir   = Join-Path $RepoRoot "build\app"
-$Zip      = Join-Path $RepoRoot "build\CAMM3-windows.zip"
+$Zip      = Join-Path $RepoRoot "build\$OutputName"
 
 if ($QtBinDir) {
     $WinDeployQt = Join-Path $QtBinDir "windeployqt.exe"

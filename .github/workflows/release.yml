@@ -38,12 +38,26 @@ jobs:
           - os: macos-latest
             name: macOS
             artifact: build/app/CAMM3.dmg
+            qt_modules: qtserialport
           - os: ubuntu-22.04
             name: Linux
             artifact: build/CAMM3-x86_64.AppImage
+            qt_modules: qtserialport
           - os: windows-latest
             name: Windows
             artifact: build/CAMM3-windows.zip
+            windows_zip: CAMM3-windows.zip
+            qt_modules: qtserialport
+          # Win7-compatible artifact: Qt 5.15.2 is the last Qt that runs on
+          # Windows 7 (Qt 6 needs Win10). SerialPort is bundled in the Qt 5 base
+          # kit, so qt_modules stays unset. Produces a separate CAMM3-windows7.zip
+          # so the modern Qt 6 Windows build is unaffected.
+          - os: windows-latest
+            name: Windows7
+            artifact: build/CAMM3-windows7.zip
+            windows_zip: CAMM3-windows7.zip
+            qt_version: 5.15.2
+            qt_arch: win64_msvc2019_64
 
     steps:
       - name: Checkout
@@ -75,11 +89,14 @@ jobs:
             libfuse2 \
             patchelf
 
+      # version/arch/modules are matrix-driven so the same step installs Qt 6
+      # (default) or the Qt 5.15.2 msvc2019 kit for the Win7 artifact.
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: ${{ env.QT_VERSION }}
-          modules: qtserialport
+          version: ${{ matrix.qt_version || env.QT_VERSION }}
+          arch: ${{ matrix.qt_arch }}
+          modules: ${{ matrix.qt_modules }}
           cache: true
 
       - name: Install Ninja
@@ -109,11 +126,13 @@ jobs:
         if: runner.os == 'macOS'
         run: packaging/macos.sh
 
-      # windeployqt copies Qt6Gui.dll & friends + plugins next to the .exe and
-      # the VC runtime, then zips build/app -> build/CAMM3-windows.zip.
+      # windeployqt copies the Qt GUI DLLs + plugins next to the .exe and the VC
+      # runtime, then zips build/app. matrix.windows_zip names the output so the
+      # Qt6 and Win7/Qt5 builds produce distinct CAMM3-windows.zip /
+      # CAMM3-windows7.zip artifacts.
       - name: Package Windows (.zip)
         if: runner.os == 'Windows'
-        run: pwsh packaging/windows.ps1
+        run: pwsh packaging/windows.ps1 -OutputName ${{ matrix.windows_zip }}
 
       # linuxdeploy + its Qt plugin bundle Qt into a portable AppImage. Neither
       # ships with Qt, so fetch both release AppImages first. linuxdeploy

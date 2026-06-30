@@ -27,6 +27,8 @@ CAMM3/
 - **Qt 6.5+** with the `Widgets`, `LinguistTools`, and `Test` modules.
   `SerialPort` is optional — without it the project still builds, but serial
   output is disabled (install it via the Qt Maintenance Tool to enable).
+  **Qt 5.15** also works and is used for the Windows 7 build (Qt 6 requires
+  Windows 10); the CMake auto-detects whichever major version is installed.
 - **CMake 3.21+** and a C++17 compiler (Ninja recommended).
 
 ## Build
