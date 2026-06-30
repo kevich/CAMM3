@@ -16,7 +16,7 @@ add_library(camm3_ui STATIC ${UI_SOURCES} ${UI_RESOURCES})
 
 target_link_libraries(camm3_ui PUBLIC
     camm3_core
-    Qt6::Widgets
+    Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 # Expose ui_*.h (AUTOUIC, generated into the binary dir) and this dir to dependents.

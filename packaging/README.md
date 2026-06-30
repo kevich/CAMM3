@@ -90,6 +90,28 @@ Compress-Archive -Path build\app\* -DestinationPath build\CAMM3-windows.zip
 > [NSIS](https://nsis.sourceforge.io/) `.nsi` script at the `windeployqt`-populated
 > `build\app` folder. Not required for distribution — the zip is sufficient.
 
+### Windows 7
+
+Qt 6 **cannot run on Windows 7** — it requires Windows 10, and a Qt 6 build
+faults with `0xC0000005` (access violation) the moment it launches under Win7.
+The release workflow therefore produces a second Windows artifact,
+`CAMM3-windows7.zip`, built against **Qt 5.15.2** (the last Qt line that supports
+Win7) using the prebuilt `win64_msvc2019_64` kit. The same CMake builds against
+either Qt major version — it discovers Qt 6 by default and falls back to Qt 5.
+
+To build the Win7 artifact locally, configure against a Qt 5.15 kit and run the
+packaging script with the alternate output name:
+
+```powershell
+cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="C:/Qt/5.15.2/msvc2019_64"
+cmake --build build --config Release
+packaging\windows.ps1 -QtBinDir C:\Qt\5.15.2\msvc2019_64\bin -OutputName CAMM3-windows7.zip
+```
+
+> **Target validation:** the modern MSVC C++ runtime that `windeployqt
+> --compiler-runtime` bundles officially supports Windows 7 SP1, but confirm on a
+> real Win7 SP1 machine before relying on it for distribution.
+
 ## Linux (AppImage)
 
 ```sh

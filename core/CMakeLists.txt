@@ -11,11 +11,11 @@ file(GLOB_RECURSE CORE_SOURCES CONFIGURE_DEPENDS
 
 add_library(camm3_core STATIC ${CORE_SOURCES})
 
-target_link_libraries(camm3_core PUBLIC Qt6::Core)
+target_link_libraries(camm3_core PUBLIC Qt${QT_VERSION_MAJOR}::Core)
 
 # SerialTransport (Chunk 5) compiles only when the SerialPort module is present.
-if(Qt6SerialPort_FOUND)
-    target_link_libraries(camm3_core PUBLIC Qt6::SerialPort)
+if(Qt${QT_VERSION_MAJOR}SerialPort_FOUND)
+    target_link_libraries(camm3_core PUBLIC Qt${QT_VERSION_MAJOR}::SerialPort)
     target_compile_definitions(camm3_core PUBLIC CAMM3_HAVE_SERIALPORT=1)
 else()
     target_compile_definitions(camm3_core PUBLIC CAMM3_HAVE_SERIALPORT=0)
