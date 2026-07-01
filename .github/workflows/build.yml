@@ -34,14 +34,14 @@ jobs:
           # Windows 7 cannot run Qt 6 (it requires Windows 10 and faults with
           # 0xC0000005 on launch). Build a second Windows artifact against
           # Qt 5.15.2 — the last Qt line that supports Win7 — using the prebuilt
-          # msvc2019 kit. qtserialport is a separately-installable addon in Qt 5
-          # (as in Qt 6), so request it explicitly or serial output compiles out.
+          # msvc2019 kit. Unlike Qt 6, Qt 5 bundles SerialPort in the base kit
+          # (it is an essential module, not an aqt addon — requesting it as a
+          # module makes install-qt-action fail), so qt_modules stays unset.
           - os: windows-latest
             name: Windows (Win7-compatible, Qt5)
             artifact_id: CAMM3-windows7
             qt_version: 5.15.2
             qt_arch: win64_msvc2019_64
-            qt_modules: qtserialport
 
     steps:
       - name: Checkout
