@@ -35,7 +35,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest
+          # Pinned to macos-14: Qt 6.8.2's macOS build links the AGL framework,
+          # which the macOS 26 SDK on macos-latest removed (ld: framework 'AGL'
+          # not found). macos-14 (Xcode 15 SDK) still provides it.
+          - os: macos-14
             name: macOS
             artifact: build/app/CAMM3.dmg
             qt_modules: qtserialport
