@@ -53,30 +53,7 @@ add_subdirectory(ui)
 add_subdirectory(app)
 add_subdirectory(tests)
 
-# Translations (Chunk 11 fills the .ts content; lupdate/lrelease wired here).
-set(TS_FILES
-    ${CMAKE_SOURCE_DIR}/i18n/CAMM3_ru.ts
-    ${CMAKE_SOURCE_DIR}/i18n/CAMM3_en.ts
-)
-if(QT_VERSION_MAJOR EQUAL 6)
-    # Qt 6 compiles the .ts to .qm and embeds them under :/i18n/ automatically.
-    qt_add_translations(CAMM3 TS_FILES ${TS_FILES})
-else()
-    # Qt 5 has no qt_add_translations: compile the .qm ourselves and embed them
-    # under the same :/i18n/ prefix main.cpp loads from. The .qrc is written at
-    # configure time (file(WRITE), synchronous) so qt5_add_resources can scan it
-    # and pick up the generated .qm as build dependencies — guaranteeing the .qm
-    # are produced before rcc runs.
-    qt5_add_translation(CAMM3_QM_FILES ${TS_FILES})
-    set(_camm3_ts_qrc "${CMAKE_CURRENT_BINARY_DIR}/camm3_translations.qrc")
-    set(_camm3_qrc_body "<RCC>\n  <qresource prefix=\"/i18n\">\n")
-    foreach(_camm3_qm ${CAMM3_QM_FILES})
-        get_filename_component(_camm3_qm_name ${_camm3_qm} NAME)
-        string(APPEND _camm3_qrc_body
-            "    <file alias=\"${_camm3_qm_name}\">${_camm3_qm}</file>\n")
-    endforeach()
-    string(APPEND _camm3_qrc_body "  </qresource>\n</RCC>\n")
-    file(WRITE ${_camm3_ts_qrc} "${_camm3_qrc_body}")
-    qt5_add_resources(CAMM3_QM_RESOURCES ${_camm3_ts_qrc})
-    target_sources(CAMM3 PRIVATE ${CAMM3_QM_FILES} ${CAMM3_QM_RESOURCES})
-endif()
+# Translations (Chunk 11 fills the .ts content). The lupdate/lrelease wiring
+# lives in app/CMakeLists.txt, alongside the CAMM3 target it attaches to — the
+# Qt 5 path generates resource sources that must resolve in the target's own
+# directory scope.
