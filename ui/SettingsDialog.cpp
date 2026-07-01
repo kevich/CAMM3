@@ -134,7 +134,10 @@ SettingsDialog::SettingsDialog(Settings* settings, QWidget* parent)
     selectByData(m_languageCombo, m_settings->language());
 
     // --- Wire reveal/hide and apply once -------------------------------------
-    connect(m_transportCombo, &QComboBox::currentIndexChanged, this,
+    // qOverload<int> disambiguates: Qt 5's currentIndexChanged is overloaded
+    // (int / const QString&), so the bare pointer is ambiguous there (Qt 6
+    // dropped the string overload). Matches the pattern used in MainWindow.cpp.
+    connect(m_transportCombo, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &SettingsDialog::updateTransportVisibility);
     updateTransportVisibility();
 }
